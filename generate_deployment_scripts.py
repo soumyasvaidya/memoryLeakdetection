@@ -19,7 +19,7 @@ def generate_scripts_from_readme(readme_content,folder_name):
        -Build the Docker image using the Dockerfile.
        -Run a Docker container to execute the unit tests.
        -Use Valgrind to check for memory leaks during the test execution.
-       -After the tests are executed, copy the test result logs or any relevant files from the container back to the {folder_name} folder on the host machine for review.
+       -After the tests are executed, copy the test result logs or any relevant files from the container back to the {folder_name} folder on the host machine for review and name the file as memory_leak.log.
        -Clean up the Docker image and container after execution
     
     3. A Makefile that includes targets for building and running the tests.
@@ -56,35 +56,37 @@ def generate_deployment_scripts(folder_path,repo_name):
 
         print(readme_content)
 
-        scripts = generate_scripts_from_readme(readme_content)
+        scripts = generate_scripts_from_readme(readme_content,'./tmp/'+repo_name)
+        if scripts is not None:
 
         # Save the generated scripts to files
-        with open("./tmp/"+repo_name+"Dockerfile", "w") as dockerfile:
-            dockerfile.write(scripts.split("```dockerfile")[1].split("```")[0].strip())
+            with open("./tmp/"+repo_name+"Dockerfile", "w") as dockerfile:
+                dockerfile.write(scripts.split("```dockerfile")[1].split("```")[0].strip())
 
-        with open("./tmp/"+repo_name+"build_and_test.sh", "w") as shell_script:
-            shell_script.write(scripts.split("```bash")[1].split("```")[0].strip())
+            with open("./tmp/"+repo_name+"build_and_test.sh", "w") as shell_script:
+                shell_script.write(scripts.split("```bash")[1].split("```")[0].strip())
 
-        with open("./tmp/"+repo_name+"Makefile", "w") as makefile:
-            makefile.write(scripts.split("```makefile")[1].split("```")[0].strip())
+            with open("./tmp/"+repo_name+"Makefile", "w") as makefile:
+                makefile.write(scripts.split("```makefile")[1].split("```")[0].strip())
 
         print("Scripts generated successfully!")
         return True
     except Exception as e:
-        print(f"Exception while generating deployment scripts")
+        print(f"Exception while generating deployment scripts :\n {e}")
         return False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process repository details.")
 
     # Define the arguments
-    parser.add_argument("repo_name", help="Name of the repository")
-    parser.add_argument("folder_path", help="Path to the folder in the repository")
+    parser.add_argument("folder_path", help="Name of the repository")
+    parser.add_argument("repo_name", help="Path to the folder in the repository")
 
     # Parse the arguments
     args = parser.parse_args()
 
     # Parse the arguments
+    print(f"path: {args.folder_path}")
     response=generate_deployment_scripts(folder_path=args.folder_path,repo_name=args.repo_name)
     if not response:
         sys.exit(1)

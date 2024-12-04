@@ -59,6 +59,7 @@ def read_file(file_path):
 def generate_unit_tests(file_path,repo_name):
     tools = [function_signatures[0]]
     file_content=read_file(file_path)
+    response=None
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -68,11 +69,12 @@ def generate_unit_tests(file_path,repo_name):
             {"role": "user", "content": f"Generate unit tests for memory leak issues in code\n {file_content}."}
         ]
     )
-
-
-    file_name = "/tmp"+repo_name+"generated_unit_tests.c"
-    with open(file_name, 'w') as file:
-        file.write(response.choices[0].message.content)
+    
+    print(f"repo name::{repo_name}")
+    file_name = "/tmp/"+repo_name+"/generated_unit_tests.c"
+    if response is not None:
+        with open(file_name, 'w') as file:
+            file.write(response.choices[0].message.content)
     
     print(f"Unit tests saved to {file_name}")
     return response

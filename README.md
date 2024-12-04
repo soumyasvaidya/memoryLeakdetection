@@ -19,3 +19,4 @@ To run the script, execute the following command in your terminal:
 
 ```bash
 ./run.sh <repo_name> <folder_path> <file_name>
+ ./run.sh libmaxmindb /mnt/c/Users/soumy/Documents/project/Automation/git_repos/libmaxminddb src/maxminddb.c

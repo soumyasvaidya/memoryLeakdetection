@@ -2,6 +2,7 @@ from openai import OpenAI
 import os
 import sys
 import argparse
+import json
 
 client = OpenAI()
 
@@ -29,7 +30,7 @@ def read_file(file_path):
     try:
         with open(file_path, 'r') as file:
             lines = file.readlines()
-            selected_lines = lines[1896:1908]
+            selected_lines = lines[0:5]
         return selected_lines
     except FileNotFoundError:
         print(f"Error: The file {file_path} does not exist.")
@@ -41,10 +42,10 @@ def read_file(file_path):
 
 
 # Function to read a file's contents
-""" def read_file(file_path):
-    tools = [function_signatures[1]]
+def read_file_content(file_path):
+    tools = [{"type": "function", "function": function_signatures[0]}]
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "You are assisting with code analysis. Use the supplied tools to assist the user"},
             {"role": "user", "content": f"Read the file: {file_path}"}
@@ -53,11 +54,52 @@ def read_file(file_path):
     )
     print("read file")
     print(response)
-    return response """
+    tool_call = response.choices[0].message.tool_calls[0]
+    print("tool call")
+    print(tool_call)
+    arguments = json.loads(tool_call.function.arguments)
+
+    file_path = arguments.get('file_path')
+
+    # Call the get_delivery_date function with the extracted order_id
+
+    file_content = read_file(file_path)
+    #print(file_content)
+    function_call_result_message = {
+    "role": "tool",
+    "content": json.dumps({
+        "file_path": file_path,
+        "file_content":file_content
+    }),
+    "tool_call_id": response.choices[0].message.tool_calls[0].id
+    }
+    completion_payload = {
+        "model": "gpt-4o",
+        "messages": [
+            {"role": "system", "content": "You are a helpful with reading files. Use the supplied tools to assist the user."},
+            {"role": "user", "content": "Hi, can you read file"},
+            {"role": "assistant", "content": "Hi there! I can help with that. Can you please provide file_path"},
+            {"role": "user", "content": f"File path {file_path}. Give me content of the file"},
+            response.choices[0].message,
+            function_call_result_message
+        ]
+    }
+
+# Call the OpenAI API's chat completions endpoint to send the tool call result back to the model
+
+    response = client.chat.completions.create(
+        model=completion_payload["model"],
+        messages=completion_payload["messages"]
+    )
+
+# Print the response from the API. In this case it will typically contain a message such as "The delivery date for your order #12345 is xyz. Is there anything else I can help you with?"
+    print("file print")
+    print(response)
+    return response
 
 # Function to generate unit tests
 def generate_unit_tests(file_path,repo_name):
-    tools = [function_signatures[0]]
+    tools = [{"type": "function_call", "functions": function_signatures[0]}]
     file_content=read_file(file_path)
     response=None
     response = client.chat.completions.create(
@@ -104,10 +146,12 @@ def identify_and_generate_tests(folder_path, target_file,repo_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process repository details.")
-
+    parser.add_argument("file_path", help="Path to the folder in the repository")
+    args = parser.parse_args()
+    read_file_content(args.file_path)
     # Define the arguments
-    parser.add_argument("repo_name", help="Name of the repository")
-    parser.add_argument("folder_path", help="Path to the folder in the repository")
+    """ parser.add_argument("repo_name", help="Name of the repository")
+    
     parser.add_argument("file_name", help="Name of the file to process")
 
     # Parse the arguments
@@ -116,4 +160,4 @@ if __name__ == "__main__":
     # step 1: generate test cases
     response=identify_and_generate_tests(folder_path=args.folder_path,target_file=args.file_name,repo_name=args.repo_name)
     if not response:
-        sys.exit(1)
+        sys.exit(1) """

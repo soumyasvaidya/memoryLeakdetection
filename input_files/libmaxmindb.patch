@@ -1,0 +1,31 @@
+From e63d5224c3f4a8e29ac40e5fe12795ab5310dff4 Mon Sep 17 00:00:00 2001
+From: Kokan <kokaipeter@gmail.com>
+Date: Sat, 8 Sep 2018 10:27:17 +0200
+Subject: [PATCH] Fix memory leak in metadate.languages.names
+
+Signed-off-by: Kokan <kokaipeter@gmail.com>
+---
+ src/maxminddb.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/maxminddb.c b/src/maxminddb.c
+index 7580e1ea..b13196e4 100644
+--- a/src/maxminddb.c
++++ b/src/maxminddb.c
+@@ -233,6 +233,7 @@ int MMDB_open(const char *const filename, uint32_t flags, MMDB_s *const mmdb)
+     mmdb->data_section = NULL;
+     mmdb->metadata.database_type = NULL;
+     mmdb->metadata.languages.count = 0;
++    mmdb->metadata.languages.names = NULL;
+     mmdb->metadata.description.count = 0;
+ 
+     mmdb->filename = mmdb_strdup(filename);
+@@ -1895,7 +1896,7 @@ LOCAL void free_mmdb_struct(MMDB_s *const mmdb)
+ 
+ LOCAL void free_languages_metadata(MMDB_s *mmdb)
+ {
+-    if (!mmdb->metadata.languages.count) {
++    if (!mmdb->metadata.languages.names) {
+         return;
+     }
+ 

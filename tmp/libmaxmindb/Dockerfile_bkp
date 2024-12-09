@@ -1,0 +1,42 @@
+FROM ubuntu:latest
+
+# Install necessary tools
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    automake \
+    autoconf \
+    libtool \
+    pkg-config \
+    gcc \
+    valgrind \
+    git \
+    wget \
+    unzip
+
+# Set the working directory inside the container
+WORKDIR /libmaxminddb
+
+# Clone the specific version of the repository
+RUN git clone --recursive https://github.com/maxmind/libmaxminddb .
+COPY ./unit_case.c ./Makefile /libmaxminddb/
+# Copy the code base from the host to the container
+
+RUN chmod +x ./bootstrap
+#RUN chmod -R +x /libmaxminddb
+# Debug step: List the files inside the container after COPY to verify files are copied
+RUN echo "Files after COPY step:" && \
+    ls -l /libmaxminddb
+# Prepare the build system
+RUN ./bootstrap && \
+    ./configure && \
+    make && \
+    make install && \
+    ldconfig
+
+#RUN valgrind --leak-check=full --show-leak-kinds=all make test_memory_leak > memory_leak.log 2>&1
+
+    # Verify memory_leak.log
+#RUN echo "Contents of memory_leak.log:" && cat memory_leak.log
+    
+    # Default entry point
+ENTRYPOINT ["/bin/bash"]

@@ -1,0 +1,15 @@
+# Makefile
+
+test: 
+    gcc -g -o memory_leak_unit_test memory_leak_unit_test.c -lmaxminddb
+    valgrind --leak-check=full --show-leak-kinds=all ./memory_leak_unit_test > memory_leak.log 2>&1
+
+build:
+    cp -R /mnt/c/Users/soumy/Documents/project/Automation/git_repos/libmaxminddb .
+    chmod +x build_and_test.sh
+    ./build_and_test.sh
+
+clean:
+    rm -rf libmaxminddb
+    rm memory_leak_unit_test
+    rm memory_leak.log

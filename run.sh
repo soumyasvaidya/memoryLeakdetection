@@ -9,7 +9,7 @@ fi
 # Assign arguments to variables
 REPO_NAME=$1
 FOLDER_PATH=$2
-FILE_NAME=$3
+PATCH_FILE_PATH=$3
 FIXED_CODE_FILE=$4
 
 TMP_DIR="tmp"
@@ -29,7 +29,7 @@ if [ ! -d "$TMP_DIR/$REPO_NAME" ]; then
 fi
 
 # Retry limit
-MAX_ATTEMPTS=3
+MAX_ATTEMPTS=1
 attempt=1
 
 while [ $attempt -le $MAX_ATTEMPTS ]; do
@@ -37,7 +37,7 @@ while [ $attempt -le $MAX_ATTEMPTS ]; do
 
     # Step 1: Generate test cases
     echo "Generating test cases for $FILE_NAME in $FOLDER_PATH..."
-    python3 generate_test_cases.py "$REPO_NAME" "$FOLDER_PATH" "$FILE_NAME"
+    python3 generate_test_cases_with_function_calling.py "$PATCH_FILE_PATH" "$FOLDER_PATH" "$REPO_NAME"
 
     if [ $? -ne 0 ]; then
         echo "Exception in generating test cases. Exiting..."
@@ -55,7 +55,7 @@ while [ $attempt -le $MAX_ATTEMPTS ]; do
 
     # Step 3: Build and run tests
     echo "Running build and test scripts..."
-    sh build_and_test.sh "$FOLDER_PATH"
+    sh deploy_code.sh "$FOLDER_PATH" "$REPO_NAME"
 
     # Step 4: Validate memory leak
     echo "Validating memory leak..."
